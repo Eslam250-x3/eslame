@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استخراج IDS من النصوص</title>
+
+    <!-- المكتبات الحديثة -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, var(--background-color) 0%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .app-title {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: fadeInDown 1s;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            animation: fadeIn 1s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-custom {
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn-extract {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-extract:hover {
+            background: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .result-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            min-height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .highlight {
+            background-color: #fff176;
+            padding: 2px 5px;
+            border-radius: 3px;
+            transition: background-color 0.3s ease;
+        }
+
+        .contact-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .contact-icon {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            margin-right: 10px;
+        }
+
+        .alert-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideInRight 0.5s;
+        }
+
+        /* مؤثرات حركية */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* تحسينات للأجهزة المحمولة */
+        @media (max-width: 768px) {
+            .app-title {
+                font-size: 2rem;
+            }
+
+            .main-container {
+                padding: 1rem;
+            }
+        }
+        /* CSS إضافي للوضع المظلم وأدوات البحث */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+       .dark-mode .result-area {
+              color: #fff;
+         }
+       .dark-mode .contact-card{
+             background: #2d2d2d;
+           color:#fff
+         }
+
+        .dark-mode .card {
+            background-color: #2d2d2d;
+            border-color: #404040;
+        }
+
+        .dark-mode .form-control {
+            background-color: #333;
+            border-color: #404040;
+            color: #fff;
+        }
+
+        .history-item {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            background-color: #f8f9fa;
+            transform: translateX(-5px);
+        }
+
+        .dark-mode .history-item:hover {
+            background-color: #3d3d3d;
+        }
+
+        .search-result-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .search-result-item mark {
+            background-color: #ffd700;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+         .floating-tools {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .tool-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .tool-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* إضافة أنماط لبطاقات النتائج */
+         .stats-container {
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .stat-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e0e0e0;
+        }
+        .stat-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+        }
+        .stat-card i {
+            font-size: 2.5em;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+        .stat-card h4 {
+             font-size: 1.8em;
+             margin-bottom: 5px;
+             font-weight: 600;
+         }
+
+         .id-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e0e0e0;
+         }
+         .id-card:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+          }
+         .id-content {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+          }
+         .id-number {
+              font-size: 1.2em;
+              font-weight: 500;
+              color: #333;
+         }
+         .id-actions {
+              display: flex;
+         }
+         .btn-copy {
+              background: var(--secondary-color);
+              color: white;
+              border: none;
+              border-radius: 5px;
+              padding: 6px 10px;
+              transition: all 0.3s ease;
+         }
+        .btn-copy:hover {
+            background: #2980b9;
+        }
+
+         .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* تصميم شبكي مرن */
+            gap: 15px;
+        }
+        /* أنماط إضافية للبحث عن العمليات */
+        .search-history-input {
+            margin-bottom: 10px;
+        }
+         .history-list {
+           max-height: 300px;
+           overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1 class="app-title">
+            <i class="fas fa-search-plus me-2"></i>
+            استخراج IDS من النصوص
+        </h1>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card p-4">
+                    <div class="card-body">
+                         <div class="mb-3">
+                            <label for="extractionName" class="form-label fw-bold">
+                                <i class="fas fa-tag me-2"></i>
+                                اسم العملية:
+                            </label>
+                            <input type="text" id="extractionName" class="form-control"
+                                   placeholder="أدخل اسم العملية (اختياري)"
+                                  title="يمكنك تسمية العملية لسهولة الرجوع إليها لاحقًا">
+                        </div>
+                         <div class="mb-4">
+                             <label for="textInput" class="form-label fw-bold">
+                                 <i class="fas fa-file-alt me-2"></i>
+                                 النص المراد معالجته:
+                             </label>
+                            <textarea class="form-control" id="textInput" rows="6"
+                                    placeholder="قم بلصق النص هنا..."></textarea>
+                        </div>
+
+                        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                            <button class="btn btn-custom btn-extract" onclick="extractAndDisplayIDs()" title="استخراج المعرفات من النص">
+                                <i class="fas fa-cog fa-spin me-2"></i>
+                                استخراج المعرفات
+                            </button>
+                            <button class="btn btn-custom btn-danger" onclick="clearText()" title="مسح النص المدخل والنتائج">
+                                <i class="fas fa-eraser me-2"></i>
+                                مسح النص
+                            </button>
+                            <button class="btn btn-custom btn-info" onclick="copyAllIDs()" title="نسخ جميع المعرفات المستخرجة">
+                                 <i class="fas fa-copy me-2"></i>
+                                 نسخ الكل
+                            </button>
+                             <button class="btn btn-custom btn-success" onclick="exportResults('csv')" title="تنزيل النتائج بتنسيق CSV">
+                                <i class="fas fa-download me-2"></i>
+                                تنزيل CSV
+                            </button>
+                            <button class="btn btn-custom btn-info" onclick="toggleHighlightIDs()" title="تمييز المعرفات في النص المدخل">
+                                <i class="fas fa-highlighter me-2"></i>
+                                تمييز المعرفات
+                            </button>
+                            <button class="btn btn-custom btn-warning" onclick="exportResults('json')" title="تنزيل النتائج بتنسيق JSON">
+                                 <i class="fas fa-file-code me-2"></i>
+                                 تنزيل JSON
+                            </button>
+                            <button class="btn btn-custom btn-secondary" onclick="exportResults('txt')" title="تنزيل النتائج بتنسيق TXT">
+                                 <i class="fas fa-file-alt me-2"></i>
+                                 تنزيل TXT
+                             </button>
+
+                        </div>
+                         <div class="mb-3">
+                            <input type="text" id="quickSearchInput" class="form-control"
+                                  placeholder="ابحث عن معرف..." oninput="quickSearch()"
+                                   title="ابحث عن معرف معين">
+                         </div>
+
+                         <div id="resultArea" class="result-area">
+                            <p class="text-muted text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                النتائج ستظهر هنا
+                            </p>
+                        </div>
+                        <div class="mb-3">
+                            <input type="text" id="searchHistoryInput" class="form-control search-history-input"
+                                  placeholder="ابحث عن عملية سابقة بالاسم..." oninput="filterHistory()"
+                                   title="ابحث عن عملية استخراج سابقة بالاسم">
+                        </div>
+                        <div id="historyContainer"></div>
+                     </div>
+
+                </div>
+
+                <div class="contact-card animate__animated animate__fadeIn">
+                    <h3 class="mb-4">معلومات التواصل</h3>
+                    <div class="row justify-content-center">
+                        <div class="col-md-6">
+                            <p class="mb-3">
+                                <span class="contact-icon">
+                                    <i class="fas fa-lightbulb"></i>
+                                </span>
+                                فكرة: مستر محمد هدية
+                            </p>
+                            <p class="mb-3">
+                                <span class="contact-icon">
+                                    <i class="fas fa-code"></i>
+                                </span>
+                                تنفيذ: إسلام محمد
+                            </p>
+                            <p class="mb-3">
+                                <span class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <a href="mailto:eslam.mohamed@nagwa.com" class="text-decoration-none">
+                                    eslam.mohamed@nagwa.com
+                                </a>
+                            </p>
+                            <p class="mb-3">
+                                <span class="contact-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <a href="mailto:mohamed.hedeya@nagwa.com" class="text-decoration-none">
+                                    mohamed.hedeya@nagwa.com
+                                </a>
+                            </p>
+                            <p class="mb-3">
+                                <span class="contact-icon">
+                                    <i class="fas fa-phone"></i>
+                                </span>
+                                <a href="tel:01097158020" class="text-decoration-none">
+                                    01097158020
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+     <!-- أزرار الأدوات العائمة -->
+    <div class="floating-tools">
+        <button id="darkModeBtn" class="tool-button btn btn-secondary" onclick="toggleDarkMode()" title="تغيير المظهر">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button class="tool-button btn btn-primary" onclick="scrollToTop()" title="العودة للأعلى">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </div>
+
+    <!-- المكتبات JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>
+         let extractedIDs = [];
+        let originalText = '';
+        let isHighlighted = false;
+        let historyStack = [];
+       // دالة لحفظ العمليات في السجل
+      function saveToHistory(name) {
+        historyStack.push({
+          name: name || `عملية استخراج ${historyStack.length + 1}`,
+          ids: [...extractedIDs]
+        });
+
+        if (historyStack.length > 10) {
+          historyStack.shift();
+        }
+        updateHistoryDisplay();
+      }
+
+        // دالة لاستخراج المعرفات من النص
+        function extractIDs(text) {
+            const pattern = /\b\d{12}\b/g;
+            return text.match(pattern) || [];
+        }
+
+         // دالة لتحديث منطقة النتائج بالمعرفات المستخرجة
+        function displayResults(ids) {
+            const resultArea = document.getElementById('resultArea');
+             if (ids.length > 0) {
+                  displayEnhancedResults(ids);
+
+             } else {
+                 resultArea.innerHTML = `
+                     <div class="alert alert-warning">
+                         <i class="fas fa-exclamation-triangle me-2"></i>
+                         لم يتم العثور على معرفات
+                     </div>
+                 `;
+             }
+        }
+
+        function copyToClipboard(text) {
+          // Create a temporary textarea element
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+
+          // Make it non-editable to avoid focus
+          textarea.setAttribute('readonly', '');
+
+          // Make it invisible
+          textarea.style.position = 'absolute';
+          textarea.style.left = '-9999px';
+
+          // Add to document, select, copy, then remove
+          document.body.appendChild(textarea);
+
+           // Handle iOS devices
+           if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+             const editable = textarea.contentEditable;
+             const readOnly = textarea.readOnly;
+
+             textarea.contentEditable = true;
+             textarea.readOnly = false;
+
+             const range = document.createRange();
+             range.selectNodeContents(textarea);
+
+             const selection = window.getSelection();
+             selection.removeAllRanges();
+             selection.addRange(range);
+             textarea.setSelectionRange(0, 999999);
+
+             textarea.contentEditable = editable;
+             textarea.readOnly = readOnly;
+           } else {
+             textarea.select();
+           }
+
+          try {
+            const successful = document.execCommand('copy');
+              document.body.removeChild(textarea);
+            return successful;
+          } catch (err) {
+              document.body.removeChild(textarea);
+            return false;
+          }
+        }
+
+
+        // دالة لعرض التنبيهات
+        function showToast(message, icon) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                icon: icon,
+                title: message,
+                customClass: {
+                    popup: 'colored-toast'
+                },
+                background: '#fff',
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer);
+                    toast.addEventListener('mouseleave', Swal.resumeTimer);
+                }
+            });
+        }
+
+         function handleCopy(text) {
+             if (copyToClipboard(text)) {
+                 showToast('تم النسخ بنجاح!', 'success');
+             } else {
+                 showToast('فشل النسخ', 'error');
+             }
+          }
+
+
+        // دالة لاستخراج المعرفات وعرضها
+       function extractAndDisplayIDs() {
+         try {
+            const textInput = document.getElementById('textInput');
+            const text = textInput.value.trim();
+            const extractionName = document.getElementById('extractionName').value.trim();
+
+            if (!text) {
+                showToast('الرجاء إدخال نص.', 'warning');
+                 return;
+             }
+
+            originalText = text;
+             extractedIDs = extractIDs(text);
+             displayResults(extractedIDs);
+             saveToHistory(extractionName);
+
+          } catch (error) {
+            console.error('حدث خطأ:', error);
+            showToast('حدث خطأ أثناء المعالجة.', 'error');
+          }
+        }
+
+        // دالة لمسح النص
+        function clearText() {
+            const textInput = document.getElementById('textInput');
+             textInput.value = '';
+           const extractionNameInput = document.getElementById('extractionName');
+            extractionNameInput.value = '';
+            const resultArea = document.getElementById('resultArea');
+             resultArea.innerHTML = `
+                <p class="text-muted text-center">
+                   <i class="fas fa-info-circle me-2"></i>
+                     النتائج ستظهر هنا
+               </p>
+            `;
+           extractedIDs = [];
+          historyStack = [];
+           updateHistoryDisplay();
+         showToast('تم مسح النص.', 'success');
+
+        }
+
+        // دالة لتنزيل النتائج بتنسيق CSV
+       function exportToCSV() {
+            if (!extractedIDs.length) {
+              showToast('لا توجد معرفات للتصدير', 'warning');
+              return;
+            }
+
+           const csvContent = extractedIDs.map(id => `"${id}"`).join('\n');
+           const csvData = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+           const csvURL = URL.createObjectURL(csvData);
+           const link = document.createElement('a');
+           link.href = csvURL;
+           link.setAttribute('download', 'extracted_ids.csv');
+           document.body.appendChild(link);
+            link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(csvURL);
+       }
+        // دالة لتنزيل النتائج بتنسيق JSON
+        function exportToJSON() {
+            const data = JSON.stringify(extractedIDs, null, 2);
+            downloadFile(data, 'extracted_ids.json', 'application/json');
+        }
+         // دالة لتنزيل النتائج بتنسيق TXT
+        function exportToTXT() {
+            const data = extractedIDs.join('\n');
+            downloadFile(data, 'extracted_ids.txt', 'text/plain');
+        }
+        function downloadFile(content, fileName, contentType) {
+            const blob = new Blob([content], { type: contentType });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+       // دالة للتصدير بتنسيقات مختلفة
+        function exportResults(format) {
+          if (!extractedIDs.length) {
+             showToast('لا توجد معرفات للتصدير', 'warning');
+              return;
+           }
+
+            switch(format) {
+              case 'csv':
+                 exportToCSV();
+                 break;
+              case 'json':
+                 exportToJSON();
+                  break;
+             case 'txt':
+                  exportToTXT();
+                break;
+          }
+       }
+
+        // دالة لتمييز المعرفات في النص الأصلي
+        function highlightIDs() {
+            if (!originalText || !extractedIDs.length) {
+                showToast('لا يوجد نص أو معرفات لتمييزها', 'warning');
+                return;
+            }
+
+            const textInput = document.getElementById('textInput');
+             let highlightedText = originalText;
+             extractedIDs.forEach(id => {
+                  const regex = new RegExp(`(${id})`, 'g');
+                  highlightedText = highlightedText.replace(regex, `<span class="highlight">$1</span>`);
+             });
+              textInput.value = highlightedText;
+        }
+
+        // دالة لتفعيل / إلغاء تمييز المعرفات
+        function toggleHighlightIDs() {
+            if (isHighlighted) {
+                document.getElementById('textInput').value = originalText;
+               isHighlighted = false;
+            } else {
+                highlightIDs();
+                isHighlighted = true;
+            }
+        }
+
+        // دالة لتحديث عرض السجل
+       function updateHistoryDisplay() {
+         const historyContainer = document.getElementById('historyContainer');
+        if (!historyContainer) return;
+
+           historyContainer.innerHTML = `
+             <h5 class="text-center mb-3">
+                  <i class="fas fa-history"></i> سجل العمليات السابقة
+              </h5>
+             <div class="history-list">
+                  ${historyStack.map((item, index) => `
+                    <div class="history-item" onclick="loadFromHistory(${index})">
+                        <span class="badge bg-primary">${item.ids.length}</span>
+                         <small class="text-muted">${item.name}</small>
+                         <button class="btn btn-sm btn-outline-primary float-start">
+                             <i class="fas fa-redo"></i> استعادة
+                           </button>
+                    </div>
+                `).join('')}
+              </div>
+         `;
+       }
+          // دالة لتحميل العملية من السجل
+        function loadFromHistory(index) {
+            extractedIDs = [...historyStack[index].ids];
+            displayResults(extractedIDs);
+            showToast('تم استعادة العملية السابقة', 'success');
+         }
+        // دالة لفلترة العمليات في السجل
+        function filterHistory() {
+          const searchHistoryInput = document.getElementById('searchHistoryInput');
+         const searchTerm = searchHistoryInput.value.trim().toLowerCase();
+          const filteredHistory = historyStack.filter(item =>
+             item.name.toLowerCase().includes(searchTerm)
+          );
+             displayFilteredHistory(filteredHistory);
+       }
+        // دالة لعرض السجل بعد الفلترة
+        function displayFilteredHistory(filteredHistory) {
+         const historyContainer = document.getElementById('historyContainer');
+         if (!historyContainer) return;
+
+           historyContainer.innerHTML = `
+            <h5 class="text-center mb-3">
+               <i class="fas fa-history"></i> سجل العمليات السابقة
+           </h5>
+           <div class="history-list">
+                  ${filteredHistory.map((item, index) => `
+                    <div class="history-item" onclick="loadFromHistory(${historyStack.indexOf(item)})">
+                         <span class="badge bg-primary">${item.ids.length}</span>
+                         <small class="text-muted">${item.name}</small>
+                         <button class="btn btn-sm btn-outline-primary float-start">
+                               <i class="fas fa-redo"></i> استعادة
+                         </button>
+                    </div>
+               `).join('')}
+           </div>
+       `;
+        }
+
+        // إضافة تأثيرات حركية للأزرار
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.05)';
+                this.style.transition = 'transform 0.3s ease';
+             });
+             button.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+             });
+        });
+
+        // دالة لتفعيل/إلغاء الوضع المظلم
+        function toggleDarkMode() {
+           document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDarkMode);
+            updateDarkModeButton();
+        }
+        // دالة لتحديث أيقونة زر الوضع المظلم
+        function updateDarkModeButton() {
+            const darkModeBtn = document.getElementById('darkModeBtn');
+            if (document.body.classList.contains('dark-mode')) {
+                darkModeBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                darkModeBtn.title = 'تفعيل الوضع النهاري';
+            } else {
+                darkModeBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                darkModeBtn.title = 'تفعيل الوضع الليلي';
+            }
+        }
+        // دالة للبحث السريع
+        function quickSearch() {
+           const searchInput = document.getElementById('quickSearchInput');
+           const searchTerm = searchInput.value.toLowerCase();
+
+           if (extractedIDs.length === 0) {
+               showToast('لا توجد معرفات للبحث فيها', 'warning');
+               return;
+           }
+           const filteredIDs = extractedIDs.filter(id => id.includes(searchTerm));
+           displayFilteredResults(filteredIDs, searchTerm);
+        }
+
+       // دالة لعرض النتائج بعد الفلترة
+       function displayFilteredResults(filteredIDs, searchTerm) {
+          const resultArea = document.getElementById('resultArea');
+          if (filteredIDs.length > 0) {
+               resultArea.innerHTML = `
+                   <div class="search-results">
+                       <h6 class="mb-3">نتائج البحث عن: "${searchTerm}"</h6>
+                        ${filteredIDs.map(id => `
+                            <div class="search-result-item">
+                                 ${highlightSearchTerm(id, searchTerm)}
+                             </div>
+                        `).join('')}
+                   </div>
+               `;
+             } else {
+                  resultArea.innerHTML = `
+                     <div class="alert alert-info">
+                           لا توجد نتائج تطابق بحثك: "${searchTerm}"
+                     </div>
+                  `;
+             }
+         }
+         // دالة لتمييز نص البحث
+        function highlightSearchTerm(text, term) {
+           if (!term) return text;
+            const regex = new RegExp(`(${term})`, 'gi');
+            return text.replace(regex, '<mark>$1</mark>');
+         }
+         // دالة للعودة لأعلى الصفحة
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+             });
+        }
+       // دالة لتحسين عرض النتائج مع إضافة إحصائيات
+        function displayEnhancedResults(ids) {
+             const resultArea = document.getElementById('resultArea');
+            const statsContainer = document.createElement('div');
+             statsContainer.className = 'stats-container mb-3';
+
+            // إحصائيات
+             statsContainer.innerHTML = `
+                 <div class="row text-center">
+                     <div class="col-md-4">
+                         <div class="stat-card">
+                             <i class="fas fa-hashtag"></i>
+                             <h4>${ids.length}</h4>
+                             <p>إجمالي المعرفات</p>
+                         </div>
+                     </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                             <i class="fas fa-clock"></i>
+                            <h4>${new Date().toLocaleDateString('ar-EG')}</h4>
+                             <p>تاريخ الاستخراج</p>
+                        </div>
+                    </div>
+                     <div class="col-md-4">
+                         <div class="stat-card">
+                              <i class="fas fa-check-circle"></i>
+                            <h4>100%</h4>
+                             <p>نسبة النجاح</p>
+                         </div>
+                     </div>
+                </div>
+            `;
+
+              // عرض النتائج بشكل جمالي
+             const resultsContainer = document.createElement('div');
+             resultsContainer.className = 'results-grid mt-3';
+             resultsContainer.innerHTML = ids.map(id => `
+                <div class="id-card" data-id="${id}">
+                     <div class="id-content">
+                         <span class="id-number">${id}</span>
+                         <div class="id-actions">
+                             <button class="btn btn-sm btn-copy" onclick="handleCopy('${id}')">
+                                  <i class="fas fa-copy"></i>
+                             </button>
+                        </div>
+                    </div>
+                </div>
+              `).join('');
+
+              resultArea.innerHTML = '';
+              resultArea.appendChild(statsContainer);
+             resultArea.appendChild(resultsContainer);
+
+             // إضافة تأثيرات حركية للنتائج
+             anime({
+                 targets: '.id-card',
+                 scale: [0.9, 1],
+                 opacity: [0, 1],
+                 delay: anime.stagger(100),
+                duration: 800,
+                 easing: 'easeOutElastic(1, .5)'
+             });
+         }
+
+          function copyAllIDs() {
+            if (!checkArrayLength(extractedIDs)) {
+                 showToast('لا توجد معرفات لنسخها', 'warning');
+                 return;
+             }
+             const allIDsText = extractedIDs.join('\n');
+               handleCopy(allIDsText);
+
+          }
+
+     // تهيئة الوضع المظلم عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+             const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+             if (savedDarkMode) {
+                 document.body.classList.add('dark-mode');
+                 updateDarkModeButton();
+             }
+         });
+
+        // دالة للتحقق من وجود قيم في المصفوفة
+       function checkArrayLength(array) {
+           return array && array.length > 0;
+        }
+
+    </script>
+</body>
+</html>
+
